@@ -63,7 +63,7 @@ def make_predictions(model, df, test):
     test['is_test'] = 'yes'
     df = pd.concat([df, test])
     df=df.reset_index(drop=True)
-    df['GAME DATE'] = pd.to_datetime(df['GAME DATE'],format="%d/%m/%Y")
+    df['GAME DATE'] = pd.to_datetime(df['GAME DATE'])
 
     feat_cols=['FGM', 'FGA', '3PM','FG%', '3P%', 'FT%','MIN','3PA', 'FTM', 'FTA','OREB',
                'DREB','REB','AST','STL','BLK','TOV','+/-','PF','FP']
