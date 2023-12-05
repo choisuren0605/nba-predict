@@ -3,6 +3,7 @@ import pandas as pd
 import joblib
 import pickle
 import base64
+from sklearn.metrics import accuracy_score
 # Load the trained model
 clf = joblib.load('model.joblib')
 
@@ -13,6 +14,7 @@ dict_all = pickle.load(file)
 # Load the features
 with open('features_list.pkl', 'rb') as file:
     features = pickle.load(file)
+
 
 
 def date_features(df):   
@@ -80,12 +82,31 @@ def make_predictions(model, df, test):
     test=df.loc[df['is_test']=='yes']
     test = test[features]
     pred = model.predict_proba(test)
-    pred_df = pd.DataFrame(pred, columns=['0-5', '5-10', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-100'])
+    pred_df = pd.DataFrame(pred, columns=['0-5', '10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-100', '5-10'])
+    pred_df=pred_df[['0-5', '5-10','10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-100']]
+
     pred_df = pred_df.applymap(lambda x: f'{x:.1%}')
+    # pred_df['Max_Label'] = pred_df.idxmax(axis=1)  
+    data_columns=['0-5', '5-10','10-15', '15-20', '20-25', '25-30', '30-35', '35-40', '40-100']
+    # Convert the percentage columns to numeric values
+    # pred_df[data_columns] = pred_df[data_columns].replace('%', '', regex=True).astype(float)
+    pred_df[data_columns] = pred_df[data_columns].apply(lambda x: pd.to_numeric(x.str.rstrip('%'), errors='coerce') / 100)
+    # Find the column with the maximum value for each row
+    pred_df['predict'] = pred_df[data_columns].idxmax(axis=1)
+
     pred_df.insert(loc=0, column='PLAYER', value=data['PLAYER'])
     pred_df.insert(loc=1, column='TEAM', value=data['TEAM'])
     pred_df.insert(loc=2, column='MATCH UP', value=data['MATCH UP'])
     pred_df.insert(loc=3, column='GAME DATE', value=data['GAME DATE'])
+
+    if 'PTS' in data.columns:
+        pred_df.insert(loc=3, column='PTS', value=data['PTS'])
+        bins = [0, 5, 10, 15, 20, 25, 30, 35, 40, 100]
+        bin_labels = ['0-5', '5-10', '10-15', '15-20','20-25','25-30','30-35','35-40','40-100']
+        pred_df['PTS_bin'] = pd.cut(pred_df['PTS'], bins=bins, labels=bin_labels, right=False)
+        # label_encoding_dict = {'PTS_bin': {'5-10': 8, '10-15': 1, '0-5': 0, '30-35': 5, '15-20': 2, '20-25': 3, '25-30': 4, '35-40': 6, '40-100': 7}}
+        # pred_df['PTS_encoded'] = pred_df['PTS_bin'].map(label_encoding_dict['PTS_bin'])
+   
     return pred_df
 
 
@@ -143,5 +164,16 @@ def main():
                 file_name="predictions.csv",
                 key="download_predictions",
             )
+
+        # Button to make predictions
+        if st.sidebar.button("Result"):
+            
+            predictions = make_predictions(clf, df, test)
+            st.success("Result:")
+            st.data_editor(predictions[['PLAYER','PTS_bin','predict']], num_rows="dynamic")
+            accuracy = accuracy_score(predictions['PTS_bin'],predictions['predict'])
+            st.text(f"Accuracy: {accuracy:.4f}")
+           
+
 if __name__ == '__main__':
     main()
