@@ -2,3 +2,4 @@ streamlit==1.27.0
 joblib
 catboost
 openpyxl
+scikit-learn
