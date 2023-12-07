@@ -105,7 +105,6 @@ def make_predictions(model, df, test):
  
     return pred_df
 
-
 # Streamlit App
 def main():
     st.set_page_config(layout="wide")
@@ -133,11 +132,11 @@ def main():
     uploaded_file_df = st.sidebar.file_uploader("1.Main датаг оруулна уу (CSV file)", type=["csv"])
 
     # Upload Test Data
-    uploaded_file_test = st.sidebar.file_uploader("2.Test датаг оруулна уу (Excel file)", type=["xlsx"])
+    uploaded_file_test = st.sidebar.file_uploader("2.Test датаг оруулна уу (CSV file)", type=["csv"])
 
     if uploaded_file_df is not None and uploaded_file_test is not None:
         df = pd.read_csv(uploaded_file_df)
-        test = pd.read_excel(uploaded_file_test)
+        test = pd.read_csv(uploaded_file_test)
         
         st.warning("Test Data:")
         st.write(test.head(2))
@@ -179,6 +178,6 @@ def main():
             accuracy = accuracy_score(predictions['PTS_bin'],predictions['predict'])
             st.text(f"Accuracy: {accuracy:.2f}")
            
-
 if __name__ == '__main__':
     main()
+
