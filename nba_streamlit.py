@@ -71,11 +71,10 @@ def make_predictions(model, df, test):
 
     df = preprocess_data(df, dict_all)
     df=df.sort_values(by=['GAME DATE'])
-    df=lag_features(df,10,cols=feat_cols)
+    df=lag_features(df,4,cols=feat_cols)
     df = rolling_mean_features(df, cols=feat_cols, window_size=2)
     df = rolling_mean_features(df, cols=feat_cols, window_size=3)
     df = rolling_mean_features(df, cols=feat_cols, window_size=4)
-    df = rolling_mean_features(df, cols=feat_cols, window_size=5)
     df=date_features(df)
     
     test=df.loc[df['is_test']=='yes']
